@@ -44,3 +44,17 @@ client.on(Events.InteractionCreate, async (interaction) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
+// --- Health server for Render ---
+const http = require("http");
+const PORT = process.env.PORT || 3000;
+
+http
+  .createServer((req, res) => {
+    if (req.url === "/healthz") {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      return res.end("ok");
+    }
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("SSFF bot running");
+  })
+  .listen(PORT, () => console.log(`Health server listening on ${PORT}`));
