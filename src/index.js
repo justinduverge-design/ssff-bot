@@ -5,40 +5,53 @@ const path = require("path");
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-client.commands = new Collection();
+client.commands = new Map();
+
 const commandsPath = path.join(__dirname, "commands");
-const commandFiles = fs.readdirSync(commandsPath).filter((f) => f.endsWith(".js"));
+const commandFiles = fs
+  .readdirSync(commandsPath)
+  .filter((file) => file.endsWith(".js"));
 
 for (const file of commandFiles) {
-  const cmd = require(path.join(commandsPath, file));
-  client.commands.set(cmd.data.name, cmd);
-  console.log(`Loaded command: ${cmd.data.name}`);
+  const filePath = path.join(commandsPath, file);
+  const command = require(filePath);
+
+  if ("data" in command && "execute" in command) {
+    client.commands.set(command.data.name, command);
+    console.log(`Loaded command: ${command.data.name}`);
+  } else {
+    console.log(`Skipped file (missing data/execute): ${file}`);
+  }
 }
 
 client.once(Events.ClientReady, () => {
   console.log(`✅ Bot logged in as ${client.user.tag}`);
 });
 
-client.on(Events.InteractionCreate, async (interaction) => {
+client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
-  console.log(`➡️ Received /${interaction.commandName} from ${interaction.user.tag}`);
-
   const command = client.commands.get(interaction.commandName);
+
   if (!command) {
-    console.log("❌ Command not found in collection");
+    console.error("Command not found in collection");
     return;
   }
 
   try {
     await command.execute(interaction);
-  } catch (err) {
-    console.error("Command error:", err);
-    // Try to respond safely even if something blew up
-    if (interaction.deferred || interaction.replied) {
-      await interaction.followUp({ content: "❌ Error running command.", ephemeral: true }).catch(() => {});
+  } catch (error) {
+    console.error(error);
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({
+        content: "There was an error executing this command.",
+        ephemeral: true,
+      });
     } else {
-      await interaction.reply({ content: "❌ Error running command.", ephemeral: true }).catch(() => {});
+      await interaction.reply({
+        content: "There was an error executing this command.",
+        ephemeral: true,
+      });
     }
   }
 });
