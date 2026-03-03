@@ -32,10 +32,15 @@ async function getMatchups(leagueId, week) {
   return getJson(`${BASE}/league/${leagueId}/matchups/${week}`);
 }
 
+async function getUsersInLeague(leagueId) {
+  return getJson(`${BASE}/league/${leagueId}/users`);
+}
+
 module.exports = {
   getUserByUsername,
   getLeague,
   getState,
   getRosters,
   getMatchups,
+  getUsersInLeague,
 };
