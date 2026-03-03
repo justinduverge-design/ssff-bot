@@ -13,17 +13,22 @@ module.exports = {
       const state = await sleeper.getState();
 
       // show what we actually got back
-      const keys = Object.keys(state || {}).join(", ");
-      const week = state?.week ?? state?.display_week ?? state?.league_week ?? null;
+      const keys = Object.keys(state || {});
+      const weekCandidates = {
+        week: state?.week,
+        display_week: state?.display_week,
+        leg: state?.leg,
+        season: state?.season,
+        season_type: state?.season_type,
+      };
 
       return interaction.editReply(
-        `🧪 WEEK v2 running\n` +
-        `season: **${state?.season ?? "unknown"}** (${state?.season_type ?? "unknown"})\n` +
-        `week field: **${week ?? "MISSING"}**\n` +
-        `keys: ${keys || "(none)"}`
+        `🧪 WEEK DEBUG\n` +
+        `candidates: ${JSON.stringify(weekCandidates, null, 2)}\n` +
+        `keys: ${keys.join(", ")}`
       );
     } catch (e) {
-      return interaction.editReply(`❌ WEEK v2 error: ${e.message}`);
+      return interaction.editReply(`❌ /week error: ${e.message}`);
     }
   },
 };
