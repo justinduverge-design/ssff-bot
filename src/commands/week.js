@@ -11,11 +11,19 @@ module.exports = {
 
     try {
       const state = await sleeper.getState();
+
+      // show what we actually got back
+      const keys = Object.keys(state || {}).join(", ");
+      const week = state?.week ?? state?.display_week ?? state?.league_week ?? null;
+
       return interaction.editReply(
-        `✅ NFL Week: **${state.leg || state.week || "unknown"}**`
+        `🧪 WEEK v2 running\n` +
+        `season: **${state?.season ?? "unknown"}** (${state?.season_type ?? "unknown"})\n` +
+        `week field: **${week ?? "MISSING"}**\n` +
+        `keys: ${keys || "(none)"}`
       );
     } catch (e) {
-      return interaction.editReply(`❌ Sleeper error: ${e.message}`);
+      return interaction.editReply(`❌ WEEK v2 error: ${e.message}`);
     }
   },
 };
