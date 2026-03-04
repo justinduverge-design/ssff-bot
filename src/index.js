@@ -31,28 +31,27 @@ client.once(Events.ClientReady, () => {
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
-  const command = client.commands.get(interaction.commandName);
-
-  if (!command) {
-    console.error("Command not found in collection");
-    return;
-  }
-
   try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({
-        content: "There was an error executing this command.",
-        ephemeral: true,
-      });
-    } else {
-      await interaction.reply({
-        content: "There was an error executing this command.",
-        ephemeral: true,
-      });
+    const command = client.commands.get(interaction.commandName);
+    if (!command) {
+      // IMPORTANT: don't double-ack
+      if (interaction.deferred || interaction.replied) {
+        return interaction.editReply("❌ Command not found.");
+      }
+      return interaction.reply({ content: "❌ Command not found.", ephemeral: true });
     }
+
+    await command.execute(interaction);
+
+  } catch (err) {
+    console.error(err);
+
+    const msg = "❌ There was an error executing this command.";
+    // ✅ Only respond in a way that matches the current state
+    if (interaction.deferred || interaction.replied) {
+      return interaction.editReply(msg).catch(() => {});
+    }
+    return interaction.reply({ content: msg, ephemeral: true }).catch(() => {});
   }
 });
 
