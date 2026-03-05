@@ -14,7 +14,9 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    if (!interaction.deferred && !interaction.replied) {
+  await interaction.deferReply({ ephemeral: true });
+}
 
     const leagueId = interaction.options.getString("league_id", true).trim();
     const guildId = interaction.guildId;

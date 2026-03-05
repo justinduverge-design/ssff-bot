@@ -14,7 +14,9 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    if (!interaction.deferred && !interaction.replied) {
+  await interaction.deferReply({ ephemeral: true });
+}
 
     const discordUserId = interaction.user.id;
     const usernameInput = interaction.options
