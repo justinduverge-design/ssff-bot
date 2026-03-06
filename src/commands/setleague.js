@@ -14,12 +14,28 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   async execute(interaction) {
-    if (!interaction.deferred && !interaction.replied) {
-  await interaction.deferReply({ ephemeral: true });
-}
+    await interaction.deferReply({ ephemeral: true });
+
+    const guildId = interaction.guildId;
+    if (!guildId) {
+      return interaction.editReply("❌ This command must be used in a server (not DMs).");
+    }
 
     const leagueId = interaction.options.getString("league_id", true).trim();
-    const guildId = interaction.guildId;
+
+    const stmt = db.prepare(`
+      INSERT INTO guild_settings (guild_id, league_id, updated_at)
+      VALUES (?, ?, ?)
+      ON CONFLICT(guild_id) DO UPDATE SET
+        league_id = excluded.league_id,
+        updated_at = excluded.updated_at
+    `);
+
+    stmt.run(guildId, leagueId, Date.now());
+
+    return interaction.editReply(`✅ Saved server league_id: **${leagueId}**`);
+  },
+};
 
     if (!guildId) {
       return interaction.editReply("❌ This command must be used in a server (not DMs).");
